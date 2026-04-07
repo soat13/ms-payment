@@ -3,6 +3,9 @@ vendor
 .scannerwork
 *.http
 
+# localstack
+localstack
+
 # test files
 coverage.out
 
