@@ -1,0 +1,19 @@
+services:
+  localstack:
+    container_name: localstack-main
+    image: localstack/localstack:4.4
+    entrypoint: /bin/sh -c
+    command: >
+      "chmod +x /etc/localstack/init/ready.d/*.sh &&
+       exec docker-entrypoint.sh"
+    ports:
+      - "4566:4566"
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1
+      - SERVICES=sns,sqs,dynamodb
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ./scripts/aws/init:/etc/localstack/init
+      - ./localstack/data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
