@@ -4,7 +4,7 @@ vendor
 *.http
 
 # localstack
-localstack
+.localstack
 
 # test files
 coverage.out
