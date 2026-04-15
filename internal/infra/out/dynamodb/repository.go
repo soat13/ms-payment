@@ -67,6 +67,46 @@ func (r *Repository) Create(ctx context.Context, payment *domain.Payment) error 
 	return nil
 }
 
+func (r *Repository) CountByExternalID(ctx context.Context, externalID uuid.UUID) (int, error) {
+	output, err := r.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              &r.tableName,
+		KeyConditionExpression: new("pk = :pk AND sk = :sk"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: getPaymentPKByExternalID(externalID)},
+			":sk": &types.AttributeValueMemberS{Value: getPaymentSKByExternalID(externalID)},
+		},
+	})
+	if err != nil {
+		return 0, fmt.Errorf("dynamodb repository count by external id: %w", err)
+	}
+
+	return len(output.Items), nil
+}
+
+func (r *Repository) GetByExternalID(ctx context.Context, externalID uuid.UUID) (*domain.Payment, error) {
+	output, err := r.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: &r.tableName,
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: getPaymentPKByExternalID(externalID)},
+			"sk": &types.AttributeValueMemberS{Value: getPaymentSKByExternalID(externalID)},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("dynamodb repository get by external id: %w", err)
+	}
+
+	if len(output.Item) == 0 {
+		return nil, domain.ErrPaymentNotFound
+	}
+
+	var item paymentItem
+	if err := attributevalue.UnmarshalMap(output.Item, &item); err != nil {
+		return nil, fmt.Errorf("dynamodb repository get by external id unmarshal: %w", err)
+	}
+
+	return item.toDomain()
+}
+
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Payment, error) {
 	queryOutput, err := r.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              &r.tableName,

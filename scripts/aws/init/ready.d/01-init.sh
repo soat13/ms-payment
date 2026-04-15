@@ -3,9 +3,9 @@ set -euo pipefail
 
 REGION="us-east-1"
 
-QUEUE_REPAIRORDER_FINISHED="repairorder-finished"
+QUEUE_PAYMENT_REQUEST="payment_request"
 QUEUE_PAYMENT_STATUS="payment-status"
-TOPIC_PAYMENT_STATUS="payment-status-topic"
+TOPIC_PAYMENT_STATUS="payment-status-changed"
 
 DYNAMODB_TABLE="payments"
 DYNAMODB_TABLE_TEST="payments_test"
@@ -51,14 +51,14 @@ create_dynamodb_table_if_not_exists() {
 echo "Checking/creating SQS queues..."
 
 if awslocal sqs get-queue-url \
-  --queue-name "$QUEUE_REPAIRORDER_FINISHED" \
+  --queue-name "$QUEUE_PAYMENT_REQUEST" \
   --region "$REGION" >/dev/null 2>&1; then
-  echo "Queue $QUEUE_REPAIRORDER_FINISHED already exists, skipping..."
+  echo "Queue $QUEUE_PAYMENT_REQUEST already exists, skipping..."
 else
   awslocal sqs create-queue \
-    --queue-name "$QUEUE_REPAIRORDER_FINISHED" \
+    --queue-name "$QUEUE_PAYMENT_REQUEST" \
     --region "$REGION" >/dev/null
-  echo "Queue $QUEUE_REPAIRORDER_FINISHED created"
+  echo "Queue $QUEUE_PAYMENT_REQUEST created"
 fi
 
 if awslocal sqs get-queue-url \
@@ -137,7 +137,7 @@ create_dynamodb_table_if_not_exists "$DYNAMODB_TABLE_TEST"
 
 echo "Done."
 echo "Resources ready:"
-echo "- SQS queue: $QUEUE_REPAIRORDER_FINISHED"
+echo "- SQS queue: $QUEUE_PAYMENT_REQUEST"
 echo "- SQS queue: $QUEUE_PAYMENT_STATUS"
 echo "- SNS topic: $TOPIC_PAYMENT_STATUS"
 echo "- DynamoDB table (dev): $DYNAMODB_TABLE"
