@@ -3,9 +3,9 @@ set -euo pipefail
 
 REGION="us-east-1"
 
-QUEUE_PAYMENT_REQUEST="payment_request"
+QUEUE_PAYMENT_REQUEST="payment-request"
 QUEUE_PAYMENT_STATUS="payment-status"
-TOPIC_PAYMENT_STATUS="payment-status-changed"
+TOPIC_PAYMENT_STATUS_CHANGED="payment-status-changed"
 
 DYNAMODB_TABLE="payments"
 DYNAMODB_TABLE_TEST="payments_test"
@@ -75,7 +75,7 @@ fi
 echo "Checking/creating SNS topic..."
 
 TOPIC_ARN=$(awslocal sns create-topic \
-  --name "$TOPIC_PAYMENT_STATUS" \
+  --name "$TOPIC_PAYMENT_STATUS_CHANGED" \
   --region "$REGION" \
   --query 'TopicArn' \
   --output text)
@@ -125,7 +125,7 @@ if [ "$EXISTING_SUBSCRIPTION_ARN" = "None" ] || [ -z "$EXISTING_SUBSCRIPTION_ARN
     --protocol sqs \
     --notification-endpoint "$PAYMENT_STATUS_QUEUE_ARN" \
     --region "$REGION" >/dev/null
-  echo "Queue $QUEUE_PAYMENT_STATUS subscribed to topic $TOPIC_PAYMENT_STATUS"
+  echo "Queue $QUEUE_PAYMENT_STATUS subscribed to topic $TOPIC_PAYMENT_STATUS_CHANGED"
 else
   echo "Subscription already exists, skipping..."
 fi
@@ -139,7 +139,7 @@ echo "Done."
 echo "Resources ready:"
 echo "- SQS queue: $QUEUE_PAYMENT_REQUEST"
 echo "- SQS queue: $QUEUE_PAYMENT_STATUS"
-echo "- SNS topic: $TOPIC_PAYMENT_STATUS"
+echo "- SNS topic: $TOPIC_PAYMENT_STATUS_CHANGED"
 echo "- DynamoDB table (dev): $DYNAMODB_TABLE"
 echo "- DynamoDB table (test): $DYNAMODB_TABLE_TEST"
 echo "- DynamoDB GSI: $DYNAMODB_GSI1"

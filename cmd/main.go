@@ -7,18 +7,22 @@ import (
 	"sync"
 	"syscall"
 
-	app "github.com/soat13/payment/internal"
 	"github.com/soat13/payment/internal/infra/bootstrap"
 )
 
 func main() {
 	ctx := context.Background()
-	container := bootstrap.NewContainer(bootstrap.DefaultEnv)
-	application, err := app.New(ctx, container)
-
+	container, err := bootstrap.NewContainer(ctx, bootstrap.DefaultEnvs)
 	if err != nil {
 		panic(err)
 	}
+
+	application := bootstrap.NewApp(
+		container.Repository,
+		container.TopicPublisher,
+		container.QueueSender,
+		container.Consumer,
+	)
 
 	application.Start(ctx)
 

@@ -8,16 +8,19 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/soat13/oficina-utils/pkg/messaging"
+	"github.com/soat13/oficina-utils/pkg/messaging/sns"
 	"github.com/soat13/oficina-utils/pkg/messaging/sqs"
-	app "github.com/soat13/payment/internal"
 	"github.com/soat13/payment/internal/application/ports/out"
 	infraDynamoDB "github.com/soat13/payment/internal/infra/out/dynamodb"
+	infraSNSPublisher "github.com/soat13/payment/internal/infra/out/sns"
+	infraSQSPublisher "github.com/soat13/payment/internal/infra/out/sqs"
 )
 
 type (
 	Envs struct {
 		AwsEndpoint   string
-		AwsBaseUrl    string
+		AwsBaseSQSUrl string
+		AwsBaseSNSARN string
 		AwsRegion     string
 		DynamodbTable string
 		DynamodbGSI   string
@@ -25,41 +28,45 @@ type (
 	}
 
 	Container struct {
-		Envs Envs
+		Envs           Envs
+		Consumer       messaging.Consumer
+		TopicPublisher out.TopicPublisher
+		QueueSender    out.QueueSender
+		Repository     out.Repository
 	}
 )
 
 var (
-	DefaultEnv = new(Envs)
+	DefaultEnvs = new(Envs)
 )
 
-func NewContainer(envs *Envs) app.Container {
-	if envs != nil {
-		return Container{
-			Envs: *envs,
-		}
+func NewContainer(ctx context.Context, envs *Envs) (*Container, error) {
+	if envs == nil {
+		envs = new(getEnvs())
 	}
 
-	return Container{
-		Envs: getEnvs(),
-	}
-}
-
-func (c Container) GetBroker(ctx context.Context) (messaging.Broker, error) {
-	if c.Envs.IsTest {
-		return sqs.NewSyncBroker(), nil
-	}
-
-	return sqs.NewBroker(ctx, c.Envs.AwsEndpoint, c.Envs.AwsBaseUrl)
-}
-
-func (c Container) GetRepository(ctx context.Context) (out.Repository, error) {
-	client, err := newDynamoDBClient(ctx, c.Envs)
+	queueBroker, err := getQueueBroker(envs)
 	if err != nil {
 		return nil, err
 	}
 
-	return infraDynamoDB.NewRepository(client, c.Envs.DynamodbTable, c.Envs.DynamodbGSI), nil
+	snsPublisher, err := sns.NewPublisher(ctx, envs.AwsEndpoint, envs.AwsBaseSNSARN)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := newDynamoDBClient(ctx, envs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Container{
+		Envs:           getEnvs(),
+		Consumer:       queueBroker,
+		TopicPublisher: infraSNSPublisher.NewPublisher(snsPublisher),
+		QueueSender:    infraSQSPublisher.NewSender(queueBroker),
+		Repository:     infraDynamoDB.NewRepository(client, envs.DynamodbTable, envs.DynamodbGSI),
+	}, nil
 }
 
 func getEnvs() Envs {
@@ -70,8 +77,17 @@ func getEnvs() Envs {
 
 	return Envs{
 		AwsEndpoint:   os.Getenv("AWS_ENDPOINT"),
-		AwsBaseUrl:    os.Getenv("AWS_BASE_URL"),
+		AwsBaseSQSUrl: os.Getenv("AWS_BASE_URL"),
+		AwsBaseSNSARN: os.Getenv("AWS_BASE_SNS_ARN"),
 		DynamodbTable: os.Getenv("DYNAMODB_TABLE"),
 		DynamodbGSI:   os.Getenv("DYNAMODB_GSI1"),
 	}
+}
+
+func getQueueBroker(envs *Envs) (messaging.QueueBroker, error) {
+	if envs.IsTest {
+		return sqs.NewSyncBroker(), nil
+	}
+
+	return sqs.NewBroker(context.Background(), envs.AwsEndpoint, envs.AwsBaseSQSUrl)
 }

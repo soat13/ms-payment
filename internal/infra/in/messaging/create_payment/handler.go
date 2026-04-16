@@ -21,12 +21,13 @@ type (
 
 func Handler(useCase *create_payment.CreatePaymentUseCase) func(ctx context.Context, msg messaging.Message) error {
 	return func(ctx context.Context, msg messaging.Message) error {
-		payload, err := messaging.DecodePayload[Payload](msg)
-		if err != nil {
+		payload := new(Payload)
+
+		if err := msg.DecodePayload(payload); err != nil {
 			return err
 		}
 
-		_, err = useCase.Execute(ctx, create_payment.CreatePaymentInput{
+		_, err := useCase.Execute(ctx, create_payment.CreatePaymentInput{
 			ExternalID: payload.ID,
 			Amount:     payload.Amount,
 		})

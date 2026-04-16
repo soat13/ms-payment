@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrInvalidAmount = errors.New("amount must be greater than zero")
 
-	ErrPaymentAlreadyExists = errors.New("payment already exists")
-	ErrPaymentNotFound      = errors.New("payment not found")
+	ErrConcurrentModification = errors.New("concurrent modification detected")
+	ErrPaymentAlreadyExists   = errors.New("payment already exists")
+	ErrPaymentNotFound        = errors.New("payment not found")
 )
