@@ -14,6 +14,7 @@ type StatusChangedEvent struct {
 	ID         uuid.UUID `json:"id"`
 	ExternalID uuid.UUID `json:"external_id"`
 	Status     Status    `json:"status"`
+	PaymentURL *string   `json:"payment_url"`
 }
 
 func (e StatusChangedEvent) Name() string {
@@ -21,9 +22,16 @@ func (e StatusChangedEvent) Name() string {
 }
 
 func NewStatusChangedEvent(payment Payment) Event {
+	var url string
+
+	if payment.Link != nil {
+		url = string(*payment.Link)
+	}
+
 	return StatusChangedEvent{
 		ID:         payment.ID,
 		ExternalID: payment.ExternalID,
 		Status:     payment.Status,
+		PaymentURL: &url,
 	}
 }

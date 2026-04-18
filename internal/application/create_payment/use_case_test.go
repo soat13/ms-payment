@@ -17,7 +17,7 @@ import (
 type (
 	deps struct {
 		repository        *mock.MockRepository
-		publisher         *mock.MockPublisher
+		publisher         *mock.MockTopicPublisher
 		useCase           *create_payment.CreatePaymentUseCase
 		externalID        uuid.UUID
 		amount            money.Money
@@ -106,7 +106,7 @@ func getDeps(t *testing.T) deps {
 	t.Helper()
 
 	repository := mock.NewMockRepository(gomock.NewController(t))
-	publisher := mock.NewMockPublisher(gomock.NewController(t))
+	publisher := mock.NewMockTopicPublisher(gomock.NewController(t))
 	amount, _ := money.New(12345)
 	expectedPaymentID, _ := uuid.NewV7()
 

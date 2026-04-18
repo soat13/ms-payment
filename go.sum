@@ -48,12 +48,14 @@ github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHP
 github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
+github.com/mercadopago/sdk-go v1.8.1 h1:G/wl9xABNSzikR+jo3Pyjwv9nRq93owJ99xbZAEy4G8=
+github.com/mercadopago/sdk-go v1.8.1/go.mod h1:Tc6kcqAarUKd80PAN3lObxHGRmTnlEpffK9yzbcWCUQ=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rs/zerolog v1.35.0 h1:VD0ykx7HMiMJytqINBsKcbLS+BJ4WYjz+05us+LRTdI=
 github.com/rs/zerolog v1.35.0/go.mod h1:EjML9kdfa/RMA7h/6z6pYmq1ykOuA8/mjWaEvGI+jcw=
-github.com/soat13/oficina-utils v0.0.13 h1:mF7I58s6iIz1OQzI0+zDU0aHpYykO4/dfLztg5Wp6i8=
-github.com/soat13/oficina-utils v0.0.13/go.mod h1:EiOzIpzsXanEu4K4gbV3Roev1NCZEEFLvfEbPvukqxw=
+github.com/soat13/oficina-utils v0.0.14 h1:Hp5JTQ3C+tigORPaJoGCkulFTX0qQs2muwAPvy46iHA=
+github.com/soat13/oficina-utils v0.0.14/go.mod h1:EiOzIpzsXanEu4K4gbV3Roev1NCZEEFLvfEbPvukqxw=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 go.uber.org/mock v0.6.0 h1:hyF9dfmbgIX5EfOdasqLsWD6xqpNZlXblLB/Dbnwv3Y=

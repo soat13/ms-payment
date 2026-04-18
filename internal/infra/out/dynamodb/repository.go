@@ -23,6 +23,8 @@ type Repository struct {
 	indexName string
 }
 
+var ErrConcurrentModification = errors.New("concurrent modification detected")
+
 func NewRepository(client *dynamodb.Client, tableName, indexName string) out.Repository {
 	return &Repository{
 		client:    client,
@@ -175,7 +177,7 @@ func (r *Repository) update(ctx context.Context, payment *domain.Payment) error 
 	})
 	if err != nil {
 		if _, ok := errors.AsType[*types.ConditionalCheckFailedException](err); ok {
-			return domain.ErrConcurrentModification
+			return ErrConcurrentModification
 		}
 
 		return fmt.Errorf("dynamodb repository update: %w", err)

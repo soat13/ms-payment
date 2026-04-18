@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/soat13/oficina-utils/pkg/money"
-	"github.com/soat13/payment/internal/application"
 	"github.com/soat13/payment/internal/domain"
+	"github.com/soat13/payment/internal/infra"
 	messagingHandler "github.com/soat13/payment/internal/infra/in/messaging/create_payment"
 	"github.com/soat13/payment/tests/integration"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ type (
 )
 
 func (e event) Name() string {
-	return application.PaymentRequestQueue
+	return infra.PaymentRequestQueue
 }
 
 func TestPaymentRequestFlow(t *testing.T) {
@@ -72,8 +72,9 @@ func iHaveAValidPaymentRequestMessage(t *testing.T, id uuid.UUID, amount money.M
 
 	return event{
 		Payload: messagingHandler.Payload{
-			ID:     id,
-			Amount: amount,
+			ID:          id,
+			Amount:      amount,
+			Description: "Some description",
 		},
 	}
 }
@@ -88,14 +89,14 @@ func iReceiveTheSameMessageTwice(t *testing.T, ctx context.Context, setup *integ
 func iReceiveAMessage(t *testing.T, ctx context.Context, setup *integration.Setup, message event) {
 	t.Helper()
 
-	err := setup.Application.QueuePublisher.Send(ctx, message)
+	err := setup.Container.QueueSender.Send(ctx, message)
 	require.NoError(t, err)
 }
 
 func thePaymentShouldExistOnlyOnce(t *testing.T, ctx context.Context, setup *integration.Setup, externalID uuid.UUID) {
 	t.Helper()
 
-	total, err := setup.Application.Repository.CountByExternalID(ctx, externalID)
+	total, err := setup.Container.Repository.CountByExternalID(ctx, externalID)
 	require.NoError(t, err)
 	require.Equal(t, 1, total)
 }
@@ -103,7 +104,7 @@ func thePaymentShouldExistOnlyOnce(t *testing.T, ctx context.Context, setup *int
 func thePaymentShouldBeCreatedAsPending(t *testing.T, ctx context.Context, setup *integration.Setup, externalID uuid.UUID, amount money.Money) {
 	t.Helper()
 
-	payment, err := setup.Application.Repository.GetByExternalID(ctx, externalID)
+	payment, err := setup.Container.Repository.GetByExternalID(ctx, externalID)
 	require.NoError(t, err)
 	require.NotNil(t, payment)
 	require.Equal(t, externalID, payment.ExternalID)
@@ -114,7 +115,7 @@ func thePaymentShouldBeCreatedAsPending(t *testing.T, ctx context.Context, setup
 func thePublisherExpectsAStatusChangedEvent(t *testing.T, setup *integration.Setup, externalID uuid.UUID) {
 	t.Helper()
 
-	setup.TopicPublisher.
+	setup.MockTopicPublisher.
 		EXPECT().
 		Publish(gomock.Any(), gomock.AssignableToTypeOf(domain.StatusChangedEvent{})).
 		DoAndReturn(func(_ context.Context, event domain.Event) error {
