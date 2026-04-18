@@ -14,8 +14,9 @@ import (
 
 type (
 	Payload struct {
-		ID     uuid.UUID   `json:"id"`
-		Amount money.Money `json:"amount"`
+		ID          uuid.UUID   `json:"id"`
+		Amount      money.Money `json:"amount"`
+		Description string      `json:"description"`
 	}
 )
 
@@ -23,13 +24,16 @@ func Handler(useCase *create_payment.CreatePaymentUseCase) func(ctx context.Cont
 	return func(ctx context.Context, msg messaging.Message) error {
 		payload := new(Payload)
 
-		if err := msg.DecodePayload(payload); err != nil {
+		payload, err := messaging.DecodePayload[Payload](msg)
+
+		if err != nil {
 			return err
 		}
 
-		_, err := useCase.Execute(ctx, create_payment.CreatePaymentInput{
-			ExternalID: payload.ID,
-			Amount:     payload.Amount,
+		_, err = useCase.Execute(ctx, create_payment.CreatePaymentInput{
+			ExternalID:  payload.ID,
+			Amount:      payload.Amount,
+			Description: payload.Description,
 		})
 
 		if errors.Is(err, domain.ErrPaymentAlreadyExists) {

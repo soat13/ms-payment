@@ -3,8 +3,11 @@ set -euo pipefail
 
 REGION="us-east-1"
 
+# SQS queues
 QUEUE_PAYMENT_REQUEST="payment-request"
-QUEUE_PAYMENT_STATUS="payment-status"
+QUEUE_PAYMENT_STATUS="payment-link-request"
+
+# SNS topic for payment status changes
 TOPIC_PAYMENT_STATUS_CHANGED="payment-status-changed"
 
 DYNAMODB_TABLE="payments"

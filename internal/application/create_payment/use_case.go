@@ -16,8 +16,9 @@ type (
 	}
 
 	CreatePaymentInput struct {
-		ExternalID uuid.UUID
-		Amount     money.Money
+		Description string
+		ExternalID  uuid.UUID
+		Amount      money.Money
 	}
 )
 
@@ -29,7 +30,7 @@ func NewCreatePaymentUseCase(repository out.Repository, publisher out.TopicPubli
 }
 
 func (uc *CreatePaymentUseCase) Execute(ctx context.Context, input CreatePaymentInput) (*domain.Payment, error) {
-	payment, err := domain.NewPendingPayment(input.ExternalID, input.Amount)
+	payment, err := domain.NewPendingPayment(input.ExternalID, input.Amount, input.Description)
 	if err != nil {
 		return nil, err
 	}

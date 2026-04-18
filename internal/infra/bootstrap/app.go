@@ -4,46 +4,57 @@ import (
 	"context"
 
 	"github.com/soat13/oficina-utils/pkg/messaging"
-	"github.com/soat13/payment/internal/application"
+	"github.com/soat13/payment/internal/application/create_link"
 	"github.com/soat13/payment/internal/application/create_payment"
-	"github.com/soat13/payment/internal/application/ports/out"
-	messagingHandler "github.com/soat13/payment/internal/infra/in/messaging/create_payment"
+	"github.com/soat13/payment/internal/infra"
+	createLinkPaymentHandler "github.com/soat13/payment/internal/infra/in/messaging/create_link"
+	createPaymentHandler "github.com/soat13/payment/internal/infra/in/messaging/create_payment"
 )
 
 type (
 	App struct {
-		Repository     out.Repository
-		TopicPublisher out.TopicPublisher
-		QueuePublisher out.QueueSender
-
-		// private
-		consumer messaging.Consumer
+		container *Container
+		consumer  messaging.Consumer
 	}
 )
 
-func NewApp(
-	repository out.Repository,
-	topicPublisher out.TopicPublisher,
-	queueSender out.QueueSender,
-	queueConsumer messaging.Consumer,
-) *App {
+func NewApp(container *Container) *App {
 	return &App{
-		Repository:     repository,
-		TopicPublisher: topicPublisher,
-		QueuePublisher: queueSender,
-		consumer:       queueConsumer,
+		container: container,
+		consumer:  container.Consumer,
 	}
 }
 
 func (a *App) Start(ctx context.Context) {
-	useCase := create_payment.NewCreatePaymentUseCase(a.Repository, a.TopicPublisher)
-	handler := messagingHandler.Handler(useCase)
 
-	a.consumer.Subscribe(application.PaymentRequestQueue, handler)
+	a.consumer.Subscribe(
+		infra.PaymentRequestQueue,
+		createPaymentHandler.Handler(a.getCreatePaymentUseCase()),
+	)
 
-	go a.consumer.Listen(ctx)
+	a.consumer.Subscribe(
+		infra.PaymentLinkRequest,
+		createLinkPaymentHandler.Handler(a.getCreateLinkUseCase()),
+	)
+
+	go a.container.Consumer.Listen(ctx)
 }
 
 func (a *App) Stop() {
-	a.consumer.Stop()
+	a.container.Consumer.Stop()
+}
+
+func (a *App) getCreatePaymentUseCase() *create_payment.CreatePaymentUseCase {
+	return create_payment.NewCreatePaymentUseCase(
+		a.container.Repository,
+		a.container.TopicPublisher,
+	)
+}
+
+func (a *App) getCreateLinkUseCase() *create_link.RequestPaymentLinkUseCase {
+	return create_link.NewRequestPaymentLinkUseCase(
+		a.container.Repository,
+		a.container.TopicPublisher,
+		a.container.PaymentProvider,
+	)
 }
