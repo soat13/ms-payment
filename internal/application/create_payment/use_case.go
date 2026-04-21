@@ -12,6 +12,7 @@ import (
 type (
 	CreatePaymentUseCase struct {
 		repository out.Repository
+		publisher  out.TopicPublisher
 	}
 
 	CreatePaymentInput struct {
@@ -20,8 +21,11 @@ type (
 	}
 )
 
-func NewCreatePaymentUseCase(repository out.Repository) *CreatePaymentUseCase {
-	return &CreatePaymentUseCase{repository: repository}
+func NewCreatePaymentUseCase(repository out.Repository, publisher out.TopicPublisher) *CreatePaymentUseCase {
+	return &CreatePaymentUseCase{
+		repository: repository,
+		publisher:  publisher,
+	}
 }
 
 func (uc *CreatePaymentUseCase) Execute(ctx context.Context, input CreatePaymentInput) (*domain.Payment, error) {
@@ -30,7 +34,11 @@ func (uc *CreatePaymentUseCase) Execute(ctx context.Context, input CreatePayment
 		return nil, err
 	}
 
-	if err := uc.repository.Create(ctx, payment); err != nil {
+	if err := uc.repository.Save(ctx, payment); err != nil {
+		return nil, err
+	}
+
+	if err := uc.publisher.Publish(ctx, domain.NewStatusChangedEvent(*payment)); err != nil {
 		return nil, err
 	}
 

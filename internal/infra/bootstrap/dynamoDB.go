@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func newDynamoDBClient(ctx context.Context, envs Envs) (*dynamodb.Client, error) {
+func newDynamoDBClient(ctx context.Context, envs *Envs) (*dynamodb.Client, error) {
 	cfg, err := getDynamoDBConfig(ctx, envs)
 	if err != nil {
 		return nil, err
@@ -18,7 +18,7 @@ func newDynamoDBClient(ctx context.Context, envs Envs) (*dynamodb.Client, error)
 	return dynamodb.NewFromConfig(cfg), nil
 }
 
-func getDynamoDBConfig(ctx context.Context, envs Envs) (aws.Config, error) {
+func getDynamoDBConfig(ctx context.Context, envs *Envs) (aws.Config, error) {
 	if !envs.IsTest {
 		return config.LoadDefaultConfig(ctx)
 	}

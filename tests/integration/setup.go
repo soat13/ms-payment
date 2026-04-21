@@ -4,13 +4,15 @@ import (
 	"context"
 	"testing"
 
-	app "github.com/soat13/payment/internal"
+	"github.com/soat13/payment/internal/application/ports/out/mock"
 	"github.com/soat13/payment/internal/infra/bootstrap"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 type Setup struct {
-	Application *app.App
+	Application    *bootstrap.App
+	TopicPublisher *mock.MockPublisher
 }
 
 func NewIntegrationSetup(t *testing.T) *Setup {
@@ -20,19 +22,26 @@ func NewIntegrationSetup(t *testing.T) *Setup {
 		IsTest:        true,
 		AwsRegion:     "us-east-1",
 		AwsEndpoint:   "http://localhost:4566",
+		AwsBaseSNSARN: "arn:aws:sns:us-east-1:000000000000",
 		DynamodbGSI:   "gsi1",
 		DynamodbTable: "payments_test",
 	}
 
-	container := bootstrap.NewContainer(&env)
-
 	ctx := context.Background()
-	application, err := app.New(ctx, container)
-	if err != nil {
-		require.NoError(t, err)
-	}
+	container, err := bootstrap.NewContainer(ctx, &env)
+	require.NoError(t, err)
+
+	mockedTopicPublisher := mock.NewMockPublisher(gomock.NewController(t))
+
+	application := bootstrap.NewApp(
+		container.Repository,
+		mockedTopicPublisher,
+		container.QueueSender,
+		container.Consumer,
+	)
 
 	return &Setup{
-		Application: application,
+		Application:    application,
+		TopicPublisher: mockedTopicPublisher,
 	}
 }

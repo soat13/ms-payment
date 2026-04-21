@@ -21,6 +21,7 @@ type paymentItem struct {
 	ProviderPaymentID *string `dynamodbav:"provider_payment_id,omitempty"`
 	FailureReason     *string `dynamodbav:"failure_reason,omitempty"`
 	Metadata          *string `dynamodbav:"metadata,omitempty"`
+	Version           int     `dynamodbav:"version"`
 	CreatedAt         string  `dynamodbav:"created_at"`
 	UpdatedAt         string  `dynamodbav:"updated_at"`
 	GSI1PK            string  `dynamodbav:"gsi1pk"`
@@ -49,6 +50,7 @@ func toItem(p domain.Payment) (*paymentItem, error) {
 		ProviderPaymentID: p.ProviderPaymentID,
 		FailureReason:     p.FailureReason,
 		Metadata:          metadata,
+		Version:           p.Version,
 		CreatedAt:         p.CreatedAt.Format(time.RFC3339Nano),
 		UpdatedAt:         p.UpdatedAt.Format(time.RFC3339Nano),
 		GSI1PK:            getPaymentIDGSI1PK(p.ID),
@@ -86,6 +88,7 @@ func (i paymentItem) toDomain() (*domain.Payment, error) {
 		ID:                id,
 		ExternalID:        externalID,
 		Amount:            amount,
+		Version:           i.Version,
 		Status:            domain.Status(i.Status),
 		ProviderPaymentID: i.ProviderPaymentID,
 		FailureReason:     i.FailureReason,

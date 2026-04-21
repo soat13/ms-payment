@@ -57,20 +57,6 @@ func (mr *MockRepositoryMockRecorder) CountByExternalID(ctx, externalID any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByExternalID", reflect.TypeOf((*MockRepository)(nil).CountByExternalID), ctx, externalID)
 }
 
-// Create mocks base method.
-func (m *MockRepository) Create(ctx context.Context, payment *domain.Payment) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, payment)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockRepositoryMockRecorder) Create(ctx, payment any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), ctx, payment)
-}
-
 // GetByExternalID mocks base method.
 func (m *MockRepository) GetByExternalID(ctx context.Context, externalID uuid.UUID) (*domain.Payment, error) {
 	m.ctrl.T.Helper()
@@ -99,4 +85,18 @@ func (m *MockRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Pay
 func (mr *MockRepositoryMockRecorder) GetByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), ctx, id)
+}
+
+// Save mocks base method.
+func (m *MockRepository) Save(ctx context.Context, payment *domain.Payment) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, payment)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockRepositoryMockRecorder) Save(ctx, payment any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRepository)(nil).Save), ctx, payment)
 }

@@ -21,6 +21,7 @@ type (
 		ProviderPaymentID *string
 		FailureReason     *string
 		Metadata          *json.RawMessage
+		Version           int
 	}
 )
 
@@ -29,6 +30,7 @@ func NewPendingPayment(externalID uuid.UUID, amount money.Money) (*Payment, erro
 		ExternalID: externalID,
 		Amount:     amount,
 		Status:     StatusPending,
+		Version:    0,
 	}
 
 	if paymentEntity.Amount.Cents == 0 {

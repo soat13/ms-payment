@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -30,41 +31,12 @@ func NewRepository(client *dynamodb.Client, tableName, indexName string) out.Rep
 	}
 }
 
-func (r *Repository) Create(ctx context.Context, payment *domain.Payment) error {
-	id, err := uuid.NewV7()
-	if err != nil {
-		return err
+func (r *Repository) Save(ctx context.Context, payment *domain.Payment) error {
+	if payment.Version == 0 {
+		return r.create(ctx, payment)
 	}
 
-	now := time.Now()
-	payment.ID = id
-	payment.CreatedAt = now
-	payment.UpdatedAt = now
-
-	item, err := toItem(*payment)
-	if err != nil {
-		return err
-	}
-
-	av, err := attributevalue.MarshalMap(item)
-	if err != nil {
-		return err
-	}
-
-	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:           &r.tableName,
-		Item:                av,
-		ConditionExpression: new("attribute_not_exists(pk)"),
-	})
-	if err != nil {
-		if _, ok := errors.AsType[*types.ConditionalCheckFailedException](err); ok {
-			return domain.ErrPaymentAlreadyExists
-		}
-
-		return fmt.Errorf("dynamodb repository create: %w", err)
-	}
-
-	return nil
+	return r.update(ctx, payment)
 }
 
 func (r *Repository) CountByExternalID(ctx context.Context, externalID uuid.UUID) (int, error) {
@@ -132,4 +104,84 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Payment
 	}
 
 	return item.toDomain()
+}
+
+func (r *Repository) create(ctx context.Context, payment *domain.Payment) error {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+
+	payment.ID = id
+	payment.CreatedAt = now
+	payment.UpdatedAt = now
+	payment.Version = 1
+
+	item, err := toItem(*payment)
+	if err != nil {
+		return err
+	}
+
+	av, err := attributevalue.MarshalMap(item)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName:           aws.String(r.tableName),
+		Item:                av,
+		ConditionExpression: aws.String("attribute_not_exists(pk) AND attribute_not_exists(sk)"),
+	})
+	if err != nil {
+		if _, ok := errors.AsType[*types.ConditionalCheckFailedException](err); ok {
+			return domain.ErrPaymentAlreadyExists
+		}
+
+		return fmt.Errorf("dynamodb repository create payment: %w", err)
+	}
+
+	return nil
+}
+func (r *Repository) update(ctx context.Context, payment *domain.Payment) error {
+	currentVersion := payment.Version
+	nextVersion := currentVersion + 1
+	updatedAt := time.Now().UTC()
+
+	clone := *payment
+	clone.UpdatedAt = updatedAt
+	clone.Version = nextVersion
+
+	item, err := toItem(clone)
+	if err != nil {
+		return err
+	}
+
+	av, err := attributevalue.MarshalMap(item)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(r.tableName),
+		Item:      av,
+		ConditionExpression: aws.String(
+			"attribute_exists(pk) AND attribute_exists(sk) AND version = :version",
+		),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":version": &types.AttributeValueMemberN{Value: strconv.Itoa(currentVersion)},
+		},
+	})
+	if err != nil {
+		if _, ok := errors.AsType[*types.ConditionalCheckFailedException](err); ok {
+			return domain.ErrConcurrentModification
+		}
+
+		return fmt.Errorf("dynamodb repository update: %w", err)
+	}
+
+	payment.UpdatedAt = updatedAt
+	payment.Version = nextVersion
+	return nil
 }

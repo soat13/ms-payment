@@ -5,7 +5,7 @@ docker-down:
 	docker compose down
 
 # Go
-mod:
+tidy:
 	go mod tidy
 vendor:
 	go mod vendor
@@ -16,6 +16,7 @@ test:
 	go test ./... -v --count=1
 mock:
 	 mockgen -package=mock -source=internal/application/ports/out/repository.go -destination=internal/application/ports/out/mock/repository.go
+	 mockgen -package=mock -source=internal/application/ports/out/publisher.go -destination=internal/application/ports/out/mock/publisher.go
 
 # Localstack
 aws-sqs-list:

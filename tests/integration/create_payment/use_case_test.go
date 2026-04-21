@@ -2,17 +2,27 @@ package create_payment_test
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/soat13/oficina-utils/pkg/money"
-	app "github.com/soat13/payment/internal"
+	"github.com/soat13/payment/internal/application"
 	"github.com/soat13/payment/internal/domain"
 	messagingHandler "github.com/soat13/payment/internal/infra/in/messaging/create_payment"
 	"github.com/soat13/payment/tests/integration"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
+
+type (
+	event struct {
+		messagingHandler.Payload
+	}
+)
+
+func (e event) Name() string {
+	return application.PaymentRequestQueue
+}
 
 func TestPaymentRequestFlow(t *testing.T) {
 	t.Parallel()
@@ -29,6 +39,7 @@ func TestPaymentRequestFlow(t *testing.T) {
 		require.NoError(t, err)
 
 		// Given
+		thePublisherExpectsAStatusChangedEvent(t, setup, externalID)
 		message := iHaveAValidPaymentRequestMessage(t, externalID, amount)
 
 		// When
@@ -44,6 +55,7 @@ func TestPaymentRequestFlow(t *testing.T) {
 		require.NoError(t, err)
 
 		// Given
+		thePublisherExpectsAStatusChangedEvent(t, setup, externalID)
 		message := iHaveAValidPaymentRequestMessage(t, externalID, amount)
 
 		// When
@@ -55,29 +67,28 @@ func TestPaymentRequestFlow(t *testing.T) {
 	})
 }
 
-func iHaveAValidPaymentRequestMessage(t *testing.T, id uuid.UUID, amount money.Money) messagingHandler.Payload {
+func iHaveAValidPaymentRequestMessage(t *testing.T, id uuid.UUID, amount money.Money) event {
 	t.Helper()
 
-	return messagingHandler.Payload{
-		ID:     id,
-		Amount: amount,
+	return event{
+		Payload: messagingHandler.Payload{
+			ID:     id,
+			Amount: amount,
+		},
 	}
 }
 
-func iReceiveTheSameMessageTwice(t *testing.T, ctx context.Context, setup *integration.Setup, payloadMessage messagingHandler.Payload) {
+func iReceiveTheSameMessageTwice(t *testing.T, ctx context.Context, setup *integration.Setup, message event) {
 	t.Helper()
 
-	iReceiveAMessage(t, ctx, setup, payloadMessage)
-	iReceiveAMessage(t, ctx, setup, payloadMessage)
+	iReceiveAMessage(t, ctx, setup, message)
+	iReceiveAMessage(t, ctx, setup, message)
 }
 
-func iReceiveAMessage(t *testing.T, ctx context.Context, setup *integration.Setup, payloadMessage messagingHandler.Payload) {
+func iReceiveAMessage(t *testing.T, ctx context.Context, setup *integration.Setup, message event) {
 	t.Helper()
 
-	encodedMessage, err := json.Marshal(payloadMessage)
-	require.NoError(t, err)
-
-	err = setup.Application.Broker.Publish(ctx, app.PaymentRequestQueue, encodedMessage)
+	err := setup.Application.QueuePublisher.Send(ctx, message)
 	require.NoError(t, err)
 }
 
@@ -98,4 +109,24 @@ func thePaymentShouldBeCreatedAsPending(t *testing.T, ctx context.Context, setup
 	require.Equal(t, externalID, payment.ExternalID)
 	require.Equal(t, amount.Cents, payment.Amount.Cents)
 	require.Equal(t, domain.StatusPending, payment.Status)
+}
+
+func thePublisherExpectsAStatusChangedEvent(t *testing.T, setup *integration.Setup, externalID uuid.UUID) {
+	t.Helper()
+
+	setup.TopicPublisher.
+		EXPECT().
+		Publish(gomock.Any(), gomock.AssignableToTypeOf(domain.StatusChangedEvent{})).
+		DoAndReturn(func(_ context.Context, event domain.Event) error {
+			statusChanged, ok := event.(domain.StatusChangedEvent)
+			require.True(t, ok)
+
+			require.Equal(t, "payment-status-changed", statusChanged.Name())
+			require.Equal(t, externalID, statusChanged.ExternalID)
+			require.Equal(t, domain.StatusPending, statusChanged.Status)
+			require.NotEqual(t, uuid.Nil, statusChanged.ID)
+
+			return nil
+		}).
+		Times(1)
 }
