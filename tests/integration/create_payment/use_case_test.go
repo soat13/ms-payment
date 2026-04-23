@@ -30,7 +30,7 @@ func TestPaymentRequestFlow(t *testing.T) {
 	ctx := context.Background()
 	setup := integration.NewIntegrationSetup(t)
 
-	setup.Application.Start(ctx)
+	setup.Application.Start(ctx, false)
 	defer setup.Application.Stop()
 
 	t.Run("should create a pending payment when a valid payment request message is received", func(t *testing.T) {

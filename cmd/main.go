@@ -7,6 +7,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/soat13/payment/internal/infra"
 	"github.com/soat13/payment/internal/infra/bootstrap"
 )
 
@@ -17,9 +18,9 @@ func main() {
 		panic(err)
 	}
 
-	application := bootstrap.NewApp(container)
+	application := infra.NewApp(container)
 
-	application.Start(ctx)
+	application.Start(ctx, true)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

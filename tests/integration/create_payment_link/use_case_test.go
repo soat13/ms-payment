@@ -30,7 +30,7 @@ func TestCreatePaymentLinkFlow(t *testing.T) {
 	ctx := context.Background()
 	setup := integration.NewIntegrationSetup(t)
 
-	setup.Application.Start(ctx)
+	setup.Application.Start(ctx, false)
 	defer setup.Application.Stop()
 
 	t.Run("should create payment link when payment status changed event is pending", func(t *testing.T) {
