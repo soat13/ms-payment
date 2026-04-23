@@ -1,7 +1,6 @@
 package dynamodb
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,10 +17,11 @@ type paymentItem struct {
 	Status            string  `dynamodbav:"status"`
 	Provider          *string `dynamodbav:"provider,omitempty"`
 	AmountCents       int64   `dynamodbav:"amount_cents"`
+	Description       string  `dynamodbav:"description"`
 	ProviderPaymentID *string `dynamodbav:"provider_payment_id,omitempty"`
 	FailureReason     *string `dynamodbav:"failure_reason,omitempty"`
-	Metadata          *string `dynamodbav:"metadata,omitempty"`
 	Version           int     `dynamodbav:"version"`
+	Link              *string `dynamodbav:"link,omitempty"`
 	CreatedAt         string  `dynamodbav:"created_at"`
 	UpdatedAt         string  `dynamodbav:"updated_at"`
 	GSI1PK            string  `dynamodbav:"gsi1pk"`
@@ -31,12 +31,18 @@ type paymentItem struct {
 func toItem(p domain.Payment) (*paymentItem, error) {
 	var provider *string
 	if p.Provider != nil {
-		provider = new(string(*p.Provider))
+		provider = new(string)
+		*provider = string(*p.Provider)
 	}
 
-	var metadata *string
-	if p.Metadata != nil {
-		metadata = new(string(*p.Metadata))
+	var providerPaymentID *string
+	if p.ProviderPaymentID != nil {
+		providerPaymentID = new(string(*p.ProviderPaymentID))
+	}
+
+	var link *string
+	if p.Link != nil {
+		link = new(string(*p.Link))
 	}
 
 	return &paymentItem{
@@ -47,10 +53,10 @@ func toItem(p domain.Payment) (*paymentItem, error) {
 		Status:            string(p.Status),
 		Provider:          provider,
 		AmountCents:       p.Amount.Cents,
-		ProviderPaymentID: p.ProviderPaymentID,
-		FailureReason:     p.FailureReason,
-		Metadata:          metadata,
+		Description:       p.Description,
+		ProviderPaymentID: providerPaymentID,
 		Version:           p.Version,
+		Link:              link,
 		CreatedAt:         p.CreatedAt.Format(time.RFC3339Nano),
 		UpdatedAt:         p.UpdatedAt.Format(time.RFC3339Nano),
 		GSI1PK:            getPaymentIDGSI1PK(p.ID),
@@ -84,23 +90,22 @@ func (i paymentItem) toDomain() (*domain.Payment, error) {
 		return nil, err
 	}
 
+	link := (*domain.Link)(i.Link)
+
 	payment := &domain.Payment{
 		ID:                id,
 		ExternalID:        externalID,
 		Amount:            amount,
+		Link:              link,
+		Description:       i.Description,
 		Version:           i.Version,
 		Status:            domain.Status(i.Status),
-		ProviderPaymentID: i.ProviderPaymentID,
-		FailureReason:     i.FailureReason,
+		ProviderPaymentID: (*domain.ProviderID)(i.ProviderPaymentID),
 		Timestamps:        entity.NewTimestamps(createdAt, updatedAt),
 	}
 
 	if i.Provider != nil {
-		payment.Provider = new(domain.Provider(*i.Provider))
-	}
-
-	if i.Metadata != nil {
-		payment.Metadata = new(json.RawMessage(*i.Metadata))
+		payment.Provider = new(domain.ProviderName(*i.Provider))
 	}
 
 	return payment, nil

@@ -12,17 +12,12 @@ import (
 
 func main() {
 	ctx := context.Background()
-	container, err := bootstrap.NewContainer(ctx, bootstrap.DefaultEnvs)
+	container, err := bootstrap.NewContainer(ctx, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	application := bootstrap.NewApp(
-		container.Repository,
-		container.TopicPublisher,
-		container.QueueSender,
-		container.Consumer,
-	)
+	application := bootstrap.NewApp(container)
 
 	application.Start(ctx)
 

@@ -11,8 +11,10 @@ import (
 )
 
 type Setup struct {
-	Application    *bootstrap.App
-	TopicPublisher *mock.MockPublisher
+	Application         *bootstrap.App
+	Container           *bootstrap.Container
+	MockTopicPublisher  *mock.MockTopicPublisher
+	MockPaymentProvider *mock.MockPaymentProvider
 }
 
 func NewIntegrationSetup(t *testing.T) *Setup {
@@ -31,17 +33,16 @@ func NewIntegrationSetup(t *testing.T) *Setup {
 	container, err := bootstrap.NewContainer(ctx, &env)
 	require.NoError(t, err)
 
-	mockedTopicPublisher := mock.NewMockPublisher(gomock.NewController(t))
+	mockTopicPublisher := mock.NewMockTopicPublisher(gomock.NewController(t))
+	mockPaymentProvider := mock.NewMockPaymentProvider(gomock.NewController(t))
 
-	application := bootstrap.NewApp(
-		container.Repository,
-		mockedTopicPublisher,
-		container.QueueSender,
-		container.Consumer,
-	)
+	container.TopicPublisher = mockTopicPublisher
+	container.PaymentProvider = mockPaymentProvider
 
 	return &Setup{
-		Application:    application,
-		TopicPublisher: mockedTopicPublisher,
+		Container:           container,
+		Application:         bootstrap.NewApp(container),
+		MockTopicPublisher:  mockTopicPublisher,
+		MockPaymentProvider: mockPaymentProvider,
 	}
 }

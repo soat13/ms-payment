@@ -6,13 +6,12 @@ import (
 	"github.com/soat13/oficina-utils/pkg/messaging"
 	"github.com/soat13/payment/internal/application/ports/out"
 	"github.com/soat13/payment/internal/domain"
+	messagingHelper "github.com/soat13/payment/internal/infra/out/messaging"
 )
 
-type (
-	Sender struct {
-		Sender messaging.QueueSender
-	}
-)
+type Sender struct {
+	Sender messaging.QueueSender
+}
 
 func NewSender(sender messaging.QueueSender) out.QueueSender {
 	return &Sender{
@@ -21,15 +20,9 @@ func NewSender(sender messaging.QueueSender) out.QueueSender {
 }
 
 func (s Sender) Send(ctx context.Context, event domain.Event) error {
-	var groupID *string
-
-	if g, ok := event.(domain.GroupedEvent); ok {
-		groupID = g.GroupID()
-	}
-
 	return s.Sender.Send(ctx, messaging.QueueMessage{
 		EventName: event.Name(),
 		Payload:   event,
-		GroupID:   groupID,
+		GroupID:   messagingHelper.ExtractGroupID(event),
 	})
 }
