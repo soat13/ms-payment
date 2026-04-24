@@ -2,10 +2,13 @@ name: Tests
 
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
 
 jobs:
-  tests:
-    name: Tests
+  tests-and-quality:
+    name: Tests & Quality
     runs-on: ubuntu-latest
 
     services:
@@ -43,18 +46,11 @@ jobs:
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
           AWS_DEFAULT_REGION: us-east-1
-          AWS_ENDPOINT_URL: http://localhost:4566
         run: |
-          sudo apt-get update && sudo apt-get install -y awscli
           chmod +x scripts/aws/init/ready.d/*.sh
-          shopt -s expand_aliases
-          alias awslocal="aws --endpoint-url=http://localhost:4566"
-          bash -c '
-            export PATH=$PATH
-            awslocal() { aws --endpoint-url=http://localhost:4566 "$@"; }
-            export -f awslocal
-            scripts/aws/init/ready.d/01-init.sh
-          '
+          awslocal() { aws --endpoint-url=http://localhost:4566 "$@"; }
+          export -f awslocal
+          scripts/aws/init/ready.d/01-init.sh
 
       - name: Run tests with coverage (unit + integration)
         env:
@@ -69,3 +65,12 @@ jobs:
             -coverpkg=./internal/... \
             -coverprofile=coverage.out \
             ./...
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: >
+            -Dsonar.go.coverage.reportPaths=coverage.out
