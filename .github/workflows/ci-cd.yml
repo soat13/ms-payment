@@ -11,6 +11,8 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   docker-build:
     needs: tests
