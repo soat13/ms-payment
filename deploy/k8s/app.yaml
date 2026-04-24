@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: fiap
+  labels:
+    app: payment
+    tags.datadoghq.com/env: "development"
+    tags.datadoghq.com/service: "payment"
+    tags.datadoghq.com/version: "1.0.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+        tags.datadoghq.com/env: "development"
+        tags.datadoghq.com/service: "payment"
+        tags.datadoghq.com/version: "1.0.0"
+      annotations:
+        ad.datadoghq.com/payment.logs: '[{"source":"go","service":"payment"}]'
+    spec:
+      serviceAccountName: payment-sa
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: apmsocketpath
+          hostPath:
+            path: /var/run/datadog/
+      containers:
+        - image: 409721164017.dkr.ecr.us-east-1.amazonaws.com/payment:latest
+          imagePullPolicy: Always
+          name: payment
+          resources:
+            limits:
+              cpu: 50m
+              memory: 40Mi
+              ephemeral-storage: 250Mi
+            requests:
+              cpu: 20m
+              memory: 20Mi
+              ephemeral-storage: 50Mi
+          envFrom:
+            - secretRef:
+                name: payment-sc
+            - configMapRef:
+                name: payment-config
+          env:
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DD_TRACE_AGENT_URL
+              value: "unix:///var/run/datadog/apm.socket"
+            - name: DD_DOGSTATSD_URL
+              value: "unix:///var/run/datadog/dsd.socket"
+            - name: DD_LOGS_INJECTION
+              value: "true"
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+          volumeMounts:
+            - name: apmsocketpath
+              mountPath: /var/run/datadog

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: fiap
+data:
+  DD_DOGSTATSD_PORT: "8125"
+  DD_TRACE_ENABLED: "true"
+  LOG_LEVEL: "info"
+  APP_ENV: "development"
+  AWS_REGION: "us-east-1"
+  DYNAMODB_TABLE: "payments"
+  DYNAMODB_GSI1: "gsi1"
+  AWS_SQS_BASE_URL: ${SQS_BASE_URL}
+  AWS_BASE_SNS_ARN: ${SNS_BASE_ARN}
