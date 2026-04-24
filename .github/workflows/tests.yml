@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  workflow_call:
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+
+    services:
+      localstack:
+        image: localstack/localstack:4.4
+        ports:
+          - "4566:4566"
+        env:
+          SERVICES: sns,sqs,dynamodb
+          AWS_DEFAULT_REGION: us-east-1
+          DEBUG: "1"
+        options: >-
+          --health-cmd="curl -sf http://localhost:4566/_localstack/health || exit 1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.1'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Bootstrap LocalStack resources
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
+        run: |
+          sudo apt-get update && sudo apt-get install -y awscli
+          chmod +x scripts/aws/init/ready.d/*.sh
+          shopt -s expand_aliases
+          alias awslocal="aws --endpoint-url=http://localhost:4566"
+          bash -c '
+            export PATH=$PATH
+            awslocal() { aws --endpoint-url=http://localhost:4566 "$@"; }
+            export -f awslocal
+            scripts/aws/init/ready.d/01-init.sh
+          '
+
+      - name: Run tests with coverage (unit + integration)
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_REGION: us-east-1
+          AWS_ENDPOINT: http://localhost:4566
+          DYNAMODB_TABLE: payments
+          DYNAMODB_GSI1: gsi1
+        run: |
+          go test -v \
+            -coverpkg=./internal/... \
+            -coverprofile=coverage.out \
+            ./...
