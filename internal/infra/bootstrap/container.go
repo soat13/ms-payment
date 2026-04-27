@@ -13,6 +13,7 @@ import (
 	"github.com/soat13/oficina-utils/pkg/messaging"
 	"github.com/soat13/oficina-utils/pkg/messaging/sns"
 	"github.com/soat13/oficina-utils/pkg/messaging/sqs"
+	"github.com/soat13/oficina-utils/pkg/observability"
 	"github.com/soat13/payment/internal/application/ports/out"
 	infraDynamoDB "github.com/soat13/payment/internal/infra/out/dynamodb"
 	infraSNSPublisher "github.com/soat13/payment/internal/infra/out/messaging/sns"
@@ -44,6 +45,7 @@ type (
 		Repository        out.Repository
 		PaymentProvider   out.PaymentProvider
 		MercadoPagoClient mercado_pago.Client
+		Metrics           *observability.Metrics
 		FiberApp          *fiber.App
 		HttpPort          string
 	}
