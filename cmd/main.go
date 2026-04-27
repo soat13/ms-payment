@@ -7,6 +7,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/soat13/oficina-utils/pkg/observability"
 	"github.com/soat13/payment/internal/infra"
 	"github.com/soat13/payment/internal/infra/bootstrap"
 )
@@ -17,6 +18,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	obs := observability.Setup(nil, nil)
+	defer observability.Shutdown(obs)
+	container.Metrics = obs.Metrics
 
 	application := infra.NewApp(container)
 
