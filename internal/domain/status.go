@@ -9,3 +9,7 @@ const (
 	StatusFailed     Status = "FAILED"
 	StatusError      Status = "ERROR"
 )
+
+func (s Status) IsAttemptResult() bool {
+	return s == StatusSucceeded || s == StatusFailed || s == StatusError
+}

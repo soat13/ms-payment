@@ -52,6 +52,14 @@ func (p *Payment) IsPending() bool {
 	return p.Status == StatusPending
 }
 
+func (p *Payment) IsProcessing() bool {
+	return p.Status == StatusProcessing
+}
+
+func (p *Payment) IsFailed() bool {
+	return p.Status == StatusFailed
+}
+
 func (p *Payment) StartProcessing(link Link, provider ProviderName, providerID ProviderID) error {
 	if !p.IsPending() {
 		return ErrInvalidStatusTransition
@@ -73,6 +81,20 @@ func (p *Payment) StartProcessing(link Link, provider ProviderName, providerID P
 	p.Link = &link
 	p.Provider = &provider
 	p.ProviderPaymentID = &providerID
+
+	return nil
+}
+
+func (p *Payment) ApplyAttemptResult(newStatus Status) error {
+	if !newStatus.IsAttemptResult() {
+		return ErrInvalidStatusTransition
+	}
+
+	if !p.IsProcessing() && !p.IsFailed() {
+		return ErrInvalidStatusTransition
+	}
+
+	p.Status = newStatus
 
 	return nil
 }
