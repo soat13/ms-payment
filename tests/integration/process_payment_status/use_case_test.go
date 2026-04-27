@@ -184,7 +184,7 @@ func thePublisherExpectsAStatusChangedEventWithSucceededStatus(
 			statusChanged, ok := event.(domain.StatusChangedEvent)
 			require.True(t, ok)
 
-			require.Equal(t, "payment-status-changed", statusChanged.Name())
+			require.Equal(t, "payment-status-changed.fifo", statusChanged.Name())
 			require.Equal(t, paymentID, statusChanged.ID)
 			require.Equal(t, externalID, statusChanged.ExternalID)
 			require.Equal(t, domain.StatusSucceeded, statusChanged.Status)

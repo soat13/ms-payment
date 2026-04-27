@@ -18,7 +18,7 @@ type StatusChangedEvent struct {
 }
 
 func (e StatusChangedEvent) Name() string {
-	return "payment-status-changed"
+	return "payment-status-changed.fifo"
 }
 
 func NewStatusChangedEvent(payment Payment) Event {

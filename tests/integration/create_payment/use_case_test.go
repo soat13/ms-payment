@@ -122,7 +122,7 @@ func thePublisherExpectsAStatusChangedEvent(t *testing.T, setup *integration.Set
 			statusChanged, ok := event.(domain.StatusChangedEvent)
 			require.True(t, ok)
 
-			require.Equal(t, "payment-status-changed", statusChanged.Name())
+			require.Equal(t, "payment-status-changed.fifo", statusChanged.Name())
 			require.Equal(t, externalID, statusChanged.ExternalID)
 			require.Equal(t, domain.StatusPending, statusChanged.Status)
 			require.NotEqual(t, uuid.Nil, statusChanged.ID)
