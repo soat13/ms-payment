@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/soat13/oficina-utils/pkg/messaging"
+	"github.com/soat13/oficina-utils/pkg/observability"
 	"github.com/soat13/payment/internal/application/create_link"
 	"github.com/soat13/payment/internal/application/create_payment"
 	"github.com/soat13/payment/internal/application/process_payment_status"
@@ -16,15 +17,17 @@ import (
 
 type (
 	App struct {
-		container *bootstrap.Container
-		consumer  messaging.Consumer
+		container     *bootstrap.Container
+		consumer      messaging.Consumer
+		observability *observability.Components
 	}
 )
 
 func NewApp(container *bootstrap.Container) *App {
 	return &App{
-		container: container,
-		consumer:  container.Consumer,
+		container:     container,
+		consumer:      container.Consumer,
+		observability: observability.Setup(container.FiberApp, nil),
 	}
 }
 
@@ -43,13 +46,14 @@ func (a *App) Start(ctx context.Context, withHttpServer bool) {
 	go a.container.Consumer.Listen(ctx)
 
 	if withHttpServer {
-		a.startFiberServe()
+		a.startFiberServer()
 	}
 
 }
 
 func (a *App) Stop() {
 	a.container.Consumer.Stop()
+	observability.Shutdown(a.observability)
 	_ = a.container.FiberApp.Shutdown()
 }
 
@@ -76,7 +80,7 @@ func (a *App) getProcessPaymentStatus() *process_payment_status.ProcessPaymentSt
 	)
 }
 
-func (a *App) startFiberServe() {
+func (a *App) startFiberServer() {
 	mercadoPagoWebhookHandler := mercado_pago.NewHandler(a.container.MercadoPagoClient, *a.getProcessPaymentStatus())
 
 	a.container.FiberApp.Post("/webhooks/mercado-pago", mercadoPagoWebhookHandler.Handle)
