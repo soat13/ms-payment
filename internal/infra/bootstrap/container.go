@@ -97,7 +97,7 @@ func getEnvs() Envs {
 
 	return Envs{
 		HttpPort:              os.Getenv("PORT"),
-		AwsEndpoint:           os.Getenv("AWS_ENDPOINT"),
+		AwsEndpoint:           os.Getenv("AWS_ENDPOINT_URL"),
 		AwsSecretAccessKey:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		AwsAccessKeyId:        os.Getenv("AWS_ACCESS_KEY_ID"),
 		AwsSessionToken:       os.Getenv("AWS_SESSION_TOKEN"),

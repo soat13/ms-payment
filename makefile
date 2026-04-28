@@ -1,8 +1,18 @@
 # Docker
 docker-up:
+	docker compose up
+
+docker-up-d:
 	docker compose up -d
+
 docker-down:
 	docker compose down
+
+docker-logs:
+	docker compose logs -f payment
+
+docker-test:
+	docker compose run --rm payment go test ./...
 
 # Go
 tidy:

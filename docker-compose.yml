@@ -1,4 +1,16 @@
 services:
+  payment:
+    image: golang:1.26-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: go run ./cmd/main.go
+    env_file:
+      - .env
+    depends_on:
+      - localstack
+    ports:
+      - "8080:8080"
   localstack:
     container_name: localstack-main
     image: localstack/localstack:4.4

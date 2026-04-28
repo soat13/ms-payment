@@ -28,7 +28,7 @@ func NewIntegrationSetup(t *testing.T) *Setup {
 	env := bootstrap.Envs{
 		IsTest:        true,
 		AwsRegion:     "us-east-1",
-		AwsEndpoint:   "http://localhost:4566",
+		AwsEndpoint:   "http://localstack:4566",
 		AwsBaseSNSARN: "arn:aws:sns:us-east-1:000000000000",
 		DynamodbGSI:   "gsi1",
 		DynamodbTable: "payments_test",
