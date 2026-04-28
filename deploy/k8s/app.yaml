@@ -24,7 +24,7 @@ spec:
         ad.datadoghq.com/payment.logs: '[{"source":"go","service":"payment"}]'
     spec:
       serviceAccountName: payment-sa
-      automountServiceAccountToken: true
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 10
       volumes:
         - name: apmsocketpath
@@ -34,6 +34,8 @@ spec:
         - image: 409721164017.dkr.ecr.us-east-1.amazonaws.com/payment:latest
           imagePullPolicy: Always
           name: payment
+          ports:
+          - containerPort: 8080
           resources:
             limits:
               cpu: 50m
@@ -71,6 +73,24 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.labels['tags.datadoghq.com/version']
+            - name: DD_TRACE_SAMPLING_RULES
+              value: '[{"resource": "GET /health*", "sample_rate": 0}, {"resource": "POST /health*", "sample_rate": 0}]'
           volumeMounts:
             - name: apmsocketpath
               mountPath: /var/run/datadog
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3

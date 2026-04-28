@@ -4,6 +4,7 @@ metadata:
   name: payment-config
   namespace: fiap
 data:
+  PORT: "8080"
   DD_DOGSTATSD_PORT: "8125"
   DD_TRACE_ENABLED: "true"
   LOG_LEVEL: "info"
