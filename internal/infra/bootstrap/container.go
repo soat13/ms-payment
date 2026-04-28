@@ -148,7 +148,7 @@ func newFiberApp() *fiber.App {
 
 func getHTTPPort(port string) string {
 	if port == "" {
-		return "8181"
+		return "8080"
 	}
 	return port
 }
