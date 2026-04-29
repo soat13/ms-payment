@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
@@ -48,6 +49,8 @@ type (
 		Metrics           *observability.Metrics
 		FiberApp          *fiber.App
 		HttpPort          string
+		DDBClient         *dynamodb.Client
+		DynamodbTable     string
 	}
 )
 
@@ -86,6 +89,8 @@ func NewContainer(ctx context.Context, envs *Envs) (*Container, error) {
 		MercadoPagoClient: mercadoPago,
 		FiberApp:          newFiberApp(),
 		HttpPort:          getHTTPPort(envs.HttpPort),
+		DDBClient:         client,
+		DynamodbTable:     envs.DynamodbTable,
 	}, nil
 }
 
