@@ -2,11 +2,13 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	awstrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/aws/aws-sdk-go-v2/aws"
 )
 
@@ -17,7 +19,10 @@ func newDynamoDBClient(ctx context.Context, envs *Envs) (*dynamodb.Client, error
 	}
 
 	if !envs.IsTest {
-		awstrace.AppendMiddleware(&cfg)
+		awstrace.AppendMiddleware(&cfg, awstrace.WithErrorCheck(func(err error) bool {
+			var ccf *types.ConditionalCheckFailedException
+			return !errors.As(err, &ccf)
+		}))
 	}
 
 	return dynamodb.NewFromConfig(cfg), nil
