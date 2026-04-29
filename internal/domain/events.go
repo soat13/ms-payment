@@ -35,3 +35,7 @@ func NewStatusChangedEvent(payment Payment) Event {
 		PaymentURL: &url,
 	}
 }
+
+func (e StatusChangedEvent) GroupID() *string {
+	return new(e.ExternalID.String())
+}
