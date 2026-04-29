@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/rs/zerolog/log"
+	"github.com/soat13/oficina-utils/pkg/db/ddb"
 	"github.com/soat13/oficina-utils/pkg/messaging"
 	"github.com/soat13/oficina-utils/pkg/observability"
 	"github.com/soat13/payment/internal/application/create_link"
@@ -24,10 +25,11 @@ type (
 )
 
 func NewApp(container *bootstrap.Container) *App {
+	pinger := ddb.NewPinger(container.DDBClient, container.DynamodbTable)
 	return &App{
 		container:     container,
 		consumer:      container.Consumer,
-		observability: observability.Setup(container.FiberApp, nil),
+		observability: observability.Setup(container.FiberApp, pinger),
 	}
 }
 

@@ -75,6 +75,7 @@ jobs:
           kubectl apply -f deploy/k8s/metric-server.yaml
           kubectl apply -f deploy/k8s/app.yaml
           kubectl apply -f deploy/k8s/hpa.yaml
+          kubectl apply -f deploy/k8s/services.yaml
 
       - name: Wait for Deployment Rollout
         run: |
