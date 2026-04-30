@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/soat13/payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/domain"
 )
 
 type (

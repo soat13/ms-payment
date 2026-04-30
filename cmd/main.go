@@ -7,8 +7,8 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/soat13/payment/internal/infra"
-	"github.com/soat13/payment/internal/infra/bootstrap"
+	"github.com/soat13/ms-payment/internal/infra"
+	"github.com/soat13/ms-payment/internal/infra/bootstrap"
 )
 
 func main() {

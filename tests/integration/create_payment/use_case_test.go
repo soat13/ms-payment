@@ -6,10 +6,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/soat13/oficina-utils/pkg/money"
-	"github.com/soat13/payment/internal/domain"
-	"github.com/soat13/payment/internal/infra"
-	messagingHandler "github.com/soat13/payment/internal/infra/in/messaging/create_payment"
-	"github.com/soat13/payment/tests/integration"
+	"github.com/soat13/ms-payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/infra"
+	messagingHandler "github.com/soat13/ms-payment/internal/infra/in/messaging/create_payment"
+	"github.com/soat13/ms-payment/tests/integration"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )

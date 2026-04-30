@@ -3,7 +3,7 @@ package out
 import (
 	"context"
 
-	"github.com/soat13/payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/domain"
 )
 
 type QueueSender interface {

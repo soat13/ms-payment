@@ -15,11 +15,11 @@ import (
 	"github.com/soat13/oficina-utils/pkg/messaging/sns"
 	"github.com/soat13/oficina-utils/pkg/messaging/sqs"
 	"github.com/soat13/oficina-utils/pkg/observability"
-	"github.com/soat13/payment/internal/application/ports/out"
-	infraDynamoDB "github.com/soat13/payment/internal/infra/out/dynamodb"
-	infraSNSPublisher "github.com/soat13/payment/internal/infra/out/messaging/sns"
-	infraSQSPublisher "github.com/soat13/payment/internal/infra/out/messaging/sqs"
-	"github.com/soat13/payment/internal/infra/out/providers/mercado_pago"
+	"github.com/soat13/ms-payment/internal/application/ports/out"
+	infraDynamoDB "github.com/soat13/ms-payment/internal/infra/out/dynamodb"
+	infraSNSPublisher "github.com/soat13/ms-payment/internal/infra/out/messaging/sns"
+	infraSQSPublisher "github.com/soat13/ms-payment/internal/infra/out/messaging/sqs"
+	"github.com/soat13/ms-payment/internal/infra/out/providers/mercado_pago"
 )
 
 type (

@@ -1,4 +1,4 @@
-module github.com/soat13/payment
+module github.com/soat13/ms-payment
 
 go 1.26.1
 
