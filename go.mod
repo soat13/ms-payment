@@ -11,7 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mercadopago/sdk-go v1.8.1
 	github.com/rs/zerolog v1.35.0
-	github.com/soat13/oficina-utils v0.0.21
+	github.com/soat13/oficina-utils v0.0.23
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/mock v0.6.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.74.8
