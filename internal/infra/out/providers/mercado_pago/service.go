@@ -2,11 +2,13 @@ package mercado_pago
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/mercadopago/sdk-go/pkg/config"
 	"github.com/mercadopago/sdk-go/pkg/merchantorder"
 	"github.com/mercadopago/sdk-go/pkg/preference"
+	"github.com/rs/zerolog/log"
 	"github.com/soat13/ms-payment/internal/application/ports/out"
 	"github.com/soat13/ms-payment/internal/domain"
 )
@@ -19,6 +21,8 @@ type (
 		merchantOrderClient merchantorder.Client
 	}
 )
+
+var ErrPaymentNotYetProcessed = errors.New("payment not yet processed")
 
 func NewMercadoPago(token string, webhookUrl string) *MercadoPago {
 	cfg, err := config.New(token)
@@ -44,13 +48,14 @@ func (m *MercadoPago) FindByMerchantID(ctx context.Context, merchantID int) (*Pr
 	payments := response.Payments
 
 	if len(payments) == 0 {
-		return &ProcessPaymentStatusResponse{
-			PaymentID: paymentID,
-			Status:    domain.StatusError,
-		}, nil
+		return nil, ErrPaymentNotYetProcessed
 	}
 
 	lastPayment := payments[len(payments)-1]
+
+	log.Info().Str("payment_id", paymentID.String()).
+		Str("mercado_pago_status", lastPayment.Status).
+		Msg("Fetched payment status from Mercado Pago")
 
 	return &ProcessPaymentStatusResponse{
 		PaymentID: paymentID,
@@ -100,9 +105,21 @@ func mapStatus(mpStatus string) domain.Status {
 
 	status, ok := statusMap[mpStatus]
 
+	log.Info().
+		Str("mercado_pago_status", mpStatus).
+		Interface("mapped_status", status).
+		Interface("mapping_exists", ok).
+		Msg("Mapped Mercado Pago status to internal status")
+
 	if !ok {
 		status = domain.StatusError
 	}
+
+	log.Info().
+		Str("mercado_pago_status", mpStatus).
+		Interface("mapped_status", status).
+		Interface("mapping_exists", ok).
+		Msg("Depois do if")
 
 	return status
 }

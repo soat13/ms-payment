@@ -38,7 +38,6 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 		log.Warn().Err(err).
 			Str("body", string(c.Body())).
 			Msg("Invalid Mercado Pago webhook payload")
-
 		return fiber.NewError(fiber.StatusBadRequest, "invalid webhook payload")
 	}
 
@@ -69,6 +68,10 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 		ProviderPaymentID: processPaymentStatusResponse.PaymentID,
 		NewStatus:         processPaymentStatusResponse.Status,
 	}
+
+	log.Info().
+		Interface("useCaseInput", useCaseInput).
+		Msg("Processing Mercado Pago webhook with use case input")
 
 	if err := h.useCase.Execute(c.Context(), useCaseInput); err != nil {
 		return err
