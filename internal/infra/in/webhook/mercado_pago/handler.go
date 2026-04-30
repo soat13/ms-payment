@@ -7,8 +7,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/soat13/payment/internal/application/process_payment_status"
-	"github.com/soat13/payment/internal/infra/out/providers/mercado_pago"
+	"github.com/soat13/ms-payment/internal/application/process_payment_status"
+	"github.com/soat13/ms-payment/internal/infra/out/providers/mercado_pago"
 )
 
 type (

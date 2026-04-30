@@ -7,13 +7,13 @@ import (
 	"github.com/soat13/oficina-utils/pkg/db/ddb"
 	"github.com/soat13/oficina-utils/pkg/messaging"
 	"github.com/soat13/oficina-utils/pkg/observability"
-	"github.com/soat13/payment/internal/application/create_link"
-	"github.com/soat13/payment/internal/application/create_payment"
-	"github.com/soat13/payment/internal/application/process_payment_status"
-	"github.com/soat13/payment/internal/infra/bootstrap"
-	createLinkPaymentHandler "github.com/soat13/payment/internal/infra/in/messaging/create_link"
-	createPaymentHandler "github.com/soat13/payment/internal/infra/in/messaging/create_payment"
-	"github.com/soat13/payment/internal/infra/in/webhook/mercado_pago"
+	"github.com/soat13/ms-payment/internal/application/create_link"
+	"github.com/soat13/ms-payment/internal/application/create_payment"
+	"github.com/soat13/ms-payment/internal/application/process_payment_status"
+	"github.com/soat13/ms-payment/internal/infra/bootstrap"
+	createLinkPaymentHandler "github.com/soat13/ms-payment/internal/infra/in/messaging/create_link"
+	createPaymentHandler "github.com/soat13/ms-payment/internal/infra/in/messaging/create_payment"
+	"github.com/soat13/ms-payment/internal/infra/in/webhook/mercado_pago"
 )
 
 type (

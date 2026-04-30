@@ -8,8 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/soat13/oficina-utils/pkg/messaging"
 	"github.com/soat13/oficina-utils/pkg/money"
-	"github.com/soat13/payment/internal/application/create_payment"
-	"github.com/soat13/payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/application/create_payment"
+	"github.com/soat13/ms-payment/internal/domain"
 )
 
 type (

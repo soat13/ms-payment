@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	mercado_pago "github.com/soat13/payment/internal/infra/out/providers/mercado_pago"
+	mercado_pago "github.com/soat13/ms-payment/internal/infra/out/providers/mercado_pago"
 	gomock "go.uber.org/mock/gomock"
 )
 

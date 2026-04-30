@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	out "github.com/soat13/payment/internal/application/ports/out"
+	out "github.com/soat13/ms-payment/internal/application/ports/out"
 	gomock "go.uber.org/mock/gomock"
 )
 

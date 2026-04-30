@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/soat13/oficina-utils/pkg/money"
-	"github.com/soat13/payment/internal/application/ports/out/mock"
-	"github.com/soat13/payment/internal/application/process_payment_status"
-	"github.com/soat13/payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/application/ports/out/mock"
+	"github.com/soat13/ms-payment/internal/application/process_payment_status"
+	"github.com/soat13/ms-payment/internal/domain"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )

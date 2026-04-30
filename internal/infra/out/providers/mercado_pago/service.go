@@ -7,8 +7,8 @@ import (
 	"github.com/mercadopago/sdk-go/pkg/config"
 	"github.com/mercadopago/sdk-go/pkg/merchantorder"
 	"github.com/mercadopago/sdk-go/pkg/preference"
-	"github.com/soat13/payment/internal/application/ports/out"
-	"github.com/soat13/payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/application/ports/out"
+	"github.com/soat13/ms-payment/internal/domain"
 )
 
 type (

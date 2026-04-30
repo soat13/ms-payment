@@ -10,9 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/soat13/oficina-utils/pkg/money"
-	"github.com/soat13/payment/internal/domain"
-	"github.com/soat13/payment/internal/infra/out/providers/mercado_pago"
-	"github.com/soat13/payment/tests/integration"
+	"github.com/soat13/ms-payment/internal/domain"
+	"github.com/soat13/ms-payment/internal/infra/out/providers/mercado_pago"
+	"github.com/soat13/ms-payment/tests/integration"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
