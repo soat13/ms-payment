@@ -23,7 +23,6 @@ func (e StatusChangedEvent) Name() string {
 
 func NewStatusChangedEvent(payment Payment) Event {
 	var url string
-
 	if payment.Link != nil {
 		url = string(*payment.Link)
 	}
