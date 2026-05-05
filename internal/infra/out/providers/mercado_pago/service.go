@@ -2,6 +2,7 @@ package mercado_pago
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/mercadopago/sdk-go/pkg/config"
@@ -19,6 +20,8 @@ type (
 		merchantOrderClient merchantorder.Client
 	}
 )
+
+var ErrPaymentNotYetProcessed = errors.New("payment not yet processed")
 
 func NewMercadoPago(token string, webhookUrl string) *MercadoPago {
 	cfg, err := config.New(token)
@@ -44,10 +47,7 @@ func (m *MercadoPago) FindByMerchantID(ctx context.Context, merchantID int) (*Pr
 	payments := response.Payments
 
 	if len(payments) == 0 {
-		return &ProcessPaymentStatusResponse{
-			PaymentID: paymentID,
-			Status:    domain.StatusError,
-		}, nil
+		return nil, ErrPaymentNotYetProcessed
 	}
 
 	lastPayment := payments[len(payments)-1]

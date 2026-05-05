@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/soat13/ms-payment/internal/application/process_payment_status"
+	"github.com/soat13/ms-payment/internal/domain"
 	"github.com/soat13/ms-payment/internal/infra/out/providers/mercado_pago"
 )
 
@@ -98,4 +99,18 @@ func (i *WebhookRequest) extractMerchantOrderID() (*int, error) {
 	}
 
 	return &merchantOrderID, nil
+}
+
+func (i *WebhookRequest) errorHandle(err error) error {
+	log.Err(err).Msg("Error processing Mercado Pago webhook")
+
+	if errors.Is(domain.ErrPaymentNotFound, err) {
+		return fiber.NewError(fiber.StatusNotFound, "payment not found")
+	}
+
+	if errors.Is(mercado_pago.ErrPaymentNotYetProcessed, err) {
+		return fiber.NewError(fiber.StatusAccepted, "payment not yet processed")
+	}
+
+	return fiber.NewError(fiber.StatusInternalServerError, "internal server error")
 }
