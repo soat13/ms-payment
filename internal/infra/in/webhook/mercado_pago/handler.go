@@ -34,9 +34,11 @@ func NewHandler(client mercado_pago.Client, useCase process_payment_status.Proce
 }
 
 func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
+	log.Info().Msg("Received Mercado Pago webhook")
+
 	var input WebhookRequest
 	if err := c.BodyParser(&input); err != nil {
-		log.Warn().Err(err).
+		log.Info().Err(err).
 			Str("body", string(c.Body())).
 			Msg("Invalid Mercado Pago webhook payload")
 
@@ -44,7 +46,7 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 	}
 
 	if input.shouldIgnore() {
-		log.Debug().
+		log.Info().
 			Str("body", string(c.Body())).
 			Msg("Ignoring unsupported Mercado Pago webhook payload")
 
@@ -53,7 +55,7 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 
 	merchantOrderID, err := input.extractMerchantOrderID()
 	if err != nil {
-		log.Warn().
+		log.Info().
 			Err(err).
 			Str("resource", input.Resource).
 			Msg("Invalid Mercado Pago merchant order resource")
@@ -63,7 +65,7 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 
 	processPaymentStatusResponse, err := h.mercadoPagoClient.FindByMerchantID(c.Context(), *merchantOrderID)
 	if err != nil {
-		return err
+		return h.handleError(err)
 	}
 
 	useCaseInput := process_payment_status.ProcessPaymentStatusInput{
@@ -101,7 +103,7 @@ func (i *WebhookRequest) extractMerchantOrderID() (*int, error) {
 	return &merchantOrderID, nil
 }
 
-func (i *WebhookRequest) errorHandle(err error) error {
+func (h *MercadoPagoHandler) handleError(err error) error {
 	log.Err(err).Msg("Error processing Mercado Pago webhook")
 
 	if errors.Is(domain.ErrPaymentNotFound, err) {
