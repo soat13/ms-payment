@@ -63,7 +63,7 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 
 	processPaymentStatusResponse, err := h.mercadoPagoClient.FindByMerchantID(c.Context(), *merchantOrderID)
 	if err != nil {
-		return err
+		return h.errorHandle(err)
 	}
 
 	useCaseInput := process_payment_status.ProcessPaymentStatusInput{
@@ -72,7 +72,7 @@ func (h *MercadoPagoHandler) Handle(c *fiber.Ctx) error {
 	}
 
 	if err := h.useCase.Execute(c.Context(), useCaseInput); err != nil {
-		return err
+		return h.errorHandle(err)
 	}
 
 	return c.SendStatus(fiber.StatusOK)
@@ -101,14 +101,14 @@ func (i *WebhookRequest) extractMerchantOrderID() (*int, error) {
 	return &merchantOrderID, nil
 }
 
-func (i *WebhookRequest) errorHandle(err error) error {
+func (h *MercadoPagoHandler) errorHandle(err error) error {
 	log.Err(err).Msg("Error processing Mercado Pago webhook")
 
-	if errors.Is(domain.ErrPaymentNotFound, err) {
+	if errors.Is(err, domain.ErrPaymentNotFound) {
 		return fiber.NewError(fiber.StatusNotFound, "payment not found")
 	}
 
-	if errors.Is(mercado_pago.ErrPaymentNotYetProcessed, err) {
+	if errors.Is(err, mercado_pago.ErrPaymentNotYetProcessed) {
 		return fiber.NewError(fiber.StatusAccepted, "payment not yet processed")
 	}
 

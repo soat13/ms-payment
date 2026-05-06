@@ -3,16 +3,17 @@ package process_payment_status_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/soat13/oficina-utils/pkg/money"
 	"github.com/soat13/ms-payment/internal/domain"
 	"github.com/soat13/ms-payment/internal/infra/out/providers/mercado_pago"
 	"github.com/soat13/ms-payment/tests/integration"
+	"github.com/soat13/oficina-utils/pkg/money"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -55,6 +56,47 @@ func TestProcessPaymentStatusFlow(t *testing.T) {
 
 		// Then
 		theResponseShouldBeBadRequest(t, response)
+	})
+
+	t.Run("should return bad request when webhook payload is invalid", func(t *testing.T) {
+		// When
+		response := iReceiveAMercadoPagoWebhook(t, setup, `{invalid-json`)
+
+		// Then
+		theResponseShouldBeBadRequest(t, response)
+	})
+
+	t.Run("should return not found when payment does not exist", func(t *testing.T) {
+		// Given
+		thePaymentProviderFindsMerchantOrderPaymentAsSucceeded(t, setup, uuid.New())
+
+		// When
+		response := iReceiveAMercadoPagoMerchantOrderWebhook(t, setup)
+
+		// Then
+		theResponseShouldBeNotFound(t, response)
+	})
+
+	t.Run("should return accepted when mercado pago payment is not yet processed", func(t *testing.T) {
+		// Given
+		thePaymentProviderReturnsPaymentNotYetProcessed(t, setup)
+
+		// When
+		response := iReceiveAMercadoPagoMerchantOrderWebhook(t, setup)
+
+		// Then
+		theResponseShouldBeAccepted(t, response)
+	})
+
+	t.Run("should return internal server error when mercado pago provider returns unexpected error", func(t *testing.T) {
+		// Given
+		thePaymentProviderReturnsUnexpectedError(t, setup)
+
+		// When
+		response := iReceiveAMercadoPagoMerchantOrderWebhook(t, setup)
+
+		// Then
+		theResponseShouldBeInternalServerError(t, response)
 	})
 }
 
@@ -169,6 +211,32 @@ func thePaymentProviderFindsMerchantOrderPaymentAsSucceeded(
 		Times(1)
 }
 
+func thePaymentProviderReturnsPaymentNotYetProcessed(
+	t *testing.T,
+	setup *integration.Setup,
+) {
+	t.Helper()
+
+	setup.MockMercadoPagoClient.
+		EXPECT().
+		FindByMerchantID(gomock.Any(), 40165307899).
+		Return(nil, mercado_pago.ErrPaymentNotYetProcessed).
+		Times(1)
+}
+
+func thePaymentProviderReturnsUnexpectedError(
+	t *testing.T,
+	setup *integration.Setup,
+) {
+	t.Helper()
+
+	setup.MockMercadoPagoClient.
+		EXPECT().
+		FindByMerchantID(gomock.Any(), 40165307899).
+		Return(nil, errors.New("unexpected mercado pago error")).
+		Times(1)
+}
+
 func thePublisherExpectsAStatusChangedEventWithSucceededStatus(
 	t *testing.T,
 	setup *integration.Setup,
@@ -225,4 +293,22 @@ func theResponseShouldBeBadRequest(t *testing.T, response *http.Response) {
 	t.Helper()
 
 	require.Equal(t, fiber.StatusBadRequest, response.StatusCode)
+}
+
+func theResponseShouldBeNotFound(t *testing.T, response *http.Response) {
+	t.Helper()
+
+	require.Equal(t, fiber.StatusNotFound, response.StatusCode)
+}
+
+func theResponseShouldBeAccepted(t *testing.T, response *http.Response) {
+	t.Helper()
+
+	require.Equal(t, fiber.StatusAccepted, response.StatusCode)
+}
+
+func theResponseShouldBeInternalServerError(t *testing.T, response *http.Response) {
+	t.Helper()
+
+	require.Equal(t, fiber.StatusInternalServerError, response.StatusCode)
 }
