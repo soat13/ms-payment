@@ -3,10 +3,10 @@ package sns
 import (
 	"context"
 
-	"github.com/soat13/oficina-utils/pkg/messaging"
 	"github.com/soat13/ms-payment/internal/application/ports/out"
 	"github.com/soat13/ms-payment/internal/domain"
 	messagingHelper "github.com/soat13/ms-payment/internal/infra/out/messaging"
+	"github.com/soat13/oficina-utils/pkg/messaging"
 )
 
 type Publisher struct {
