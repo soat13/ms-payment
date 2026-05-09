@@ -10,8 +10,6 @@
 - [Eventos](#eventos)
 - [API](#api)
 - [Execução](#execução)
-- [Operação](#operação)
-- [Evoluções Futuras](#evoluções-futuras)
 
 ---
 
@@ -140,7 +138,9 @@ Evento publicado quando o status do pagamento é alterado.
 ```json
 {
   "id": "019db1c5-e000-7874-a7d1-909d361bd7c9",
-  "status": "SUCCEEDED"
+  "external_id": "019db1c5-e000-7874-a7d1-909d361bd7c9",
+  "status": "SUCCEEDED",
+  "payment_url": "https://mercadopago.com/checkout/v1/..."
 }
 ```
 
@@ -213,5 +213,9 @@ MERCADO_PAGO_WEBHOOK_URL=
 
 **Subindo o ambiente**
 ```bash
-make docker-up
+make up
 ```
+--- 
+
+## Last Sonar Overview:
+<img width="1668" height="825" alt="image" src="https://github.com/user-attachments/assets/cb9119f2-0d6d-4b42-a62a-28b21c822264" />
